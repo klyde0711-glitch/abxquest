@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}*,*::before,*::after{box-sizing:border-box}</style>
+<title>AbxQuest</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: single centered column (max 620px); path of capsule nodes on home, full-height lesson screen with sticky feedback footer */
+:root{
+  --bg:#F3F5FB; --surface:#FFFFFF; --ink:#16192E; --muted:#5B6180; --line:#DCE0EE;
+  --accent:#4338CA; --accent-d:#2F2696; --on-accent:#FFFFFF; --sel:#E3E6FF;
+  --amber:#F59E0B; --amber-d:#B97405; --heart:#E0344B;
+  --good:#167A3E; --good-bg:#D9F7E3; --good-d:#0F5E2F;
+  --bad:#B91F35; --bad-bg:#FDE3E7; --bad-d:#8E1527;
+  --on-unit:#FFFFFF; --u1:#4338CA; --u2:#D9480F; --u3:#0B7A75; --u4:#B4245E; --u5:#6B4E16;
+  --display:"Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1020; --surface:#181B30; --ink:#ECEEFB; --muted:#A2A8C8; --line:#2B2F4E;
+  --accent:#8F8BFF; --accent-d:#5A54D6; --on-accent:#0E1020; --sel:#272A5C;
+  --amber:#FBBF24; --amber-d:#A87C0A; --heart:#FF6B7F;
+  --good:#5BE08E; --good-bg:#12301F; --good-d:#2E9C58;
+  --bad:#FF7D8F; --bad-bg:#3A1520; --bad-d:#B0384B;
+  --on-unit:#0E1020; --u1:#8F8BFF; --u2:#FF8A50; --u3:#3FD0C6; --u4:#FF77AC; --u5:#E0B35C;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1020; --surface:#181B30; --ink:#ECEEFB; --muted:#A2A8C8; --line:#2B2F4E;
+  --accent:#8F8BFF; --accent-d:#5A54D6; --on-accent:#0E1020; --sel:#272A5C;
+  --amber:#FBBF24; --amber-d:#A87C0A; --heart:#FF6B7F;
+  --good:#5BE08E; --good-bg:#12301F; --good-d:#2E9C58;
+  --bad:#FF7D8F; --bad-bg:#3A1520; --bad-d:#B0384B;
+  --on-unit:#0E1020; --u1:#8F8BFF; --u2:#FF8A50; --u3:#3FD0C6; --u4:#FF77AC; --u5:#E0B35C;
+  color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.wrap{max-width:620px;margin:0 auto;padding-block:16px 40px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:1.75rem;font-weight:800;letter-spacing:-.01em}
+.brand h1 span{color:var(--accent)}
+.stats{display:flex;gap:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat{display:flex;align-items:center;gap:5px}
+.stat svg{width:22px;height:22px}
+.tabs{display:flex;gap:8px;margin:18px 0 8px}
+.tab{flex:1;padding:10px;border:2px solid var(--line);border-radius:14px;background:var(--surface);font-weight:700;cursor:pointer}
+.tab[aria-selected="true"]{border-color:var(--accent);background:var(--sel);color:var(--accent)}
+
+/* path */
+.unit{margin-top:22px;display:flex;flex-direction:column;gap:14px}
+.unit-head{border-radius:18px;padding:14px 18px;color:var(--on-unit);background:var(--uc);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.unit-head .eyebrow{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85;font-weight:700}
+.unit-head h2{font-size:1.35rem;font-weight:700}
+.unit-head p{margin:2px 0 0;font-size:.9rem;opacity:.9}
+.nodes{display:flex;flex-direction:column;align-items:center;gap:14px;padding:6px 0}
+.node{--off:0px;transform:translateX(var(--off));display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;cursor:pointer;padding:0}
+.capsule{width:92px;height:44px;border-radius:999px;position:relative;overflow:hidden;
+  background:linear-gradient(90deg,var(--uc) 0 50%, var(--surface) 50% 100%);
+  border:3px solid var(--uc);box-shadow:0 5px 0 color-mix(in srgb,var(--uc) 55%, #000);transition:transform .12s}
+.capsule::after{content:"";position:absolute;left:10px;top:7px;width:30px;height:7px;border-radius:9px;background:rgba(255,255,255,.35)}
+.node:hover .capsule{transform:translateY(-2px)}
+.node:active .capsule{transform:translateY(4px);box-shadow:0 1px 0 color-mix(in srgb,var(--uc) 55%, #000)}
+.node.done .capsule{background:var(--uc)}
+.node-label{font-size:.82rem;font-weight:700;color:var(--muted)}
+.unit-prog{font-family:var(--display);font-weight:700;font-size:1.1rem;white-space:nowrap}
+
+/* cards */
+.search{width:100%;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;margin:14px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:14px 16px;min-width:0}
+.card h3{font-size:1.25rem}
+.card .cls{color:var(--muted);font-size:.85rem;margin-bottom:8px}
+.card dl{margin:0;display:grid;gap:8px}
+.card dt{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;font-weight:700}
+.card dd{margin:0;font-size:.93rem}
+.dt1{color:var(--u1)}.dt2{color:var(--u2)}.dt3{color:var(--u3)}.dt4{color:var(--u4)}
+.note{color:var(--muted);font-size:.82rem;margin-top:28px;max-width:65ch}
+
+/* lesson */
+#lesson{min-height:100%;display:flex;flex-direction:column}
+.lbar{display:flex;align-items:center;gap:14px;padding-block:16px}
+.x{background:none;border:0;cursor:pointer;padding:4px;color:var(--muted)}
+.x svg{width:26px;height:26px}
+.prog{flex:1;height:16px;border-radius:999px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--accent);border-radius:999px;transition:width .35s ease}
+.hearts{display:flex;align-items:center;gap:4px;font-weight:700;color:var(--heart);font-variant-numeric:tabular-nums}
+.hearts svg{width:24px;height:24px}
+.qbody{flex:1;max-width:620px;width:100%;margin:0 auto;padding-block:8px 24px;display:flex;flex-direction:column;gap:18px}
+.chip{align-self:flex-start;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:4px 10px;border-radius:999px;color:var(--uc);border:2px solid var(--uc)}
+.prompt{font-family:var(--display);font-size:1.6rem;font-weight:700}
+.quote{background:var(--surface);border:2px dashed var(--uc);border-radius:16px;padding:14px 16px;font-size:1.08rem}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;width:100%;padding:13px 14px;border:2px solid var(--line);border-bottom-width:5px;border-radius:16px;background:var(--surface);cursor:pointer;font-size:1rem}
+.opt .k{flex:none;width:28px;height:28px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-size:.85rem;font-weight:700;color:var(--muted)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--sel)}
+.opt[aria-pressed="true"] .k{border-color:var(--accent);color:var(--accent)}
+.opt.right{border-color:var(--good);background:var(--good-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt:disabled{cursor:default}
+.match{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:10px}
+.match .col{display:grid;gap:10px;align-content:start}
+.m{padding:12px;border:2px solid var(--line);border-bottom-width:5px;border-radius:14px;background:var(--surface);cursor:pointer;text-align:left;font-size:.92rem;min-height:56px}
+.m.name{font-weight:700;font-family:var(--display);font-size:1.05rem}
+.m[aria-pressed="true"]{border-color:var(--accent);background:var(--sel)}
+.m.paired{opacity:.35;cursor:default}
+.m.miss{border-color:var(--bad);background:var(--bad-bg);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+.foot{position:sticky;bottom:0;border-top:2px solid var(--line);background:var(--bg);
+  margin-left:calc(-1 * max(16px, env(safe-area-inset-left, 0px)));margin-right:calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  padding:16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.foot.good{background:var(--good-bg);border-color:var(--good-bg)}
+.foot.bad{background:var(--bad-bg);border-color:var(--bad-bg)}
+.foot-in{max-width:620px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.fb{min-width:0;flex:1 1 260px}
+.fb h3{font-size:1.35rem}
+.foot.good .fb h3{color:var(--good)} .foot.bad .fb h3{color:var(--bad)}
+.fb p{margin:2px 0 0;font-size:.93rem}
+.fb small{color:var(--muted)}
+.btn{border:0;border-radius:16px;padding:13px 26px;font-family:var(--display);font-weight:800;font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
+  background:var(--accent);color:var(--on-accent);box-shadow:0 4px 0 var(--accent-d);min-width:150px}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--accent-d)}
+.btn:disabled{background:var(--line);color:var(--muted);box-shadow:none;cursor:not-allowed}
+.foot.good .btn{background:var(--good);box-shadow:0 4px 0 var(--good-d);color:var(--surface)}
+.foot.bad .btn{background:var(--bad);box-shadow:0 4px 0 var(--bad-d);color:var(--surface)}
+.btn.ghost{background:var(--surface);color:var(--accent);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+
+/* result */
+.result{text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px;padding-block:48px}
+.result h2{font-size:2.2rem;font-weight:800}
+.tiles{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.tile{border:2px solid var(--tc);border-radius:16px;overflow:hidden;min-width:120px;background:var(--surface)}
+.tile b{display:block;background:var(--tc);color:var(--surface);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px}
+.tile span{display:block;font-family:var(--display);font-size:1.6rem;font-weight:800;padding:6px 12px;font-variant-numeric:tabular-nums}
+.big-capsule{width:140px;height:64px;border-radius:999px;background:linear-gradient(90deg,var(--accent) 0 50%,var(--amber) 50%);box-shadow:0 6px 0 var(--accent-d);animation:pop .6s ease}
+@keyframes pop{0%{transform:scale(.4) rotate(-30deg)}70%{transform:scale(1.1) rotate(8deg)}100%{transform:none}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:440px){.prompt{font-size:1.35rem}.match{grid-template-columns:1fr}.btn{width:100%}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4h2c.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.7 4.3 7.2C19.5 16.4 12 21 12 21z"/></symbol>
+  <symbol id="i-fire" viewBox="0 0 24 24"><path fill="#F97316" d="M12 2s5 4.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.8 2-5 0 2 1 3 2 3 0-4 1-6 1-8z"/><path fill="#FBBF24" d="M12 12s2.5 2 2.5 4.2a2.5 2.5 0 0 1-5 0C9.5 14.3 12 12 12 12z"/></symbol>
+  <symbol id="i-xp" viewBox="0 0 24 24"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.6" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></symbol>
+</svg>
+
+<div id="home" class="wrap">
+  <div class="top">
+    <div class="brand"><h1>Abx<span>Quest</span></h1></div>
+    <div class="stats">
+      <span class="stat" title="Day streak"><svg><use href="#i-fire"/></svg><span id="s-streak">0</span></span>
+      <span class="stat" style="color:var(--amber)" title="Total XP"><svg><use href="#i-xp"/></svg><span id="s-xp">0</span> XP</span>
+    </div>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-path" aria-selected="true">Learning path</button>
+    <button class="tab" role="tab" id="tab-cards" aria-selected="false">Drug cards</button>
+  </div>
+  <section id="view-path"></section>
+  <section id="view-cards" hidden>
+    <input id="search" class="search" type="search" placeholder="Search a drug, class, ADR or disease…" aria-label="Search drug cards">
+    <div id="cards" class="cards"></div>
+  </section>
+  <p class="note">For learning only. Content follows standard pharmacology references in summary form and is not a substitute for the BNF, MIMS, product leaflets or local antibiotic guidelines.</p>
+</div>
+
+<div id="lesson" hidden>
+  <div class="lbar wrap" style="padding-bottom:0;width:100%">
+    <button class="x" id="quit" aria-label="Quit lesson"><svg><use href="#i-x"/></svg></button>
+    <div class="prog" role="progressbar" aria-label="Lesson progress"><i id="bar"></i></div>
+    <span class="hearts" title="Hearts"><svg><use href="#i-heart"/></svg><span id="hearts">5</span></span>
+  </div>
+  <div class="qbody" id="qbody"></div>
+  <div class="foot" id="foot">
+    <div class="foot-in">
+      <div class="fb" id="fb"></div>
+      <button class="btn" id="check" disabled>Check</button>
+    </div>
+  </div>
+</div>
+
+<div id="result" class="wrap" hidden></div>
+
+<script>
+const DRUGS = [
+ {name:'Amoxicillin', cls:'Penicillin (β-lactam)', group:'blactam',
+  moa:'Binds penicillin-binding proteins, blocking cell-wall cross-linking',
+  adr:'Hypersensitivity rash and diarrhoea',
+  ind:'Community-acquired pneumonia and acute otitis media',
+  cau:'Check penicillin allergy; rash is common if given in glandular fever'},
+ {name:'Ceftriaxone', cls:'3rd-generation cephalosporin (β-lactam)', group:'blactam',
+  moa:'Binds penicillin-binding proteins, blocking cell-wall cross-linking',
+  adr:'Biliary sludge (pseudolithiasis) and diarrhoea',
+  ind:'Bacterial meningitis and gonorrhoea',
+  cau:'Do not give with IV calcium solutions in neonates (precipitates)'},
+ {name:'Vancomycin', cls:'Glycopeptide', group:'glyco',
+  moa:'Binds D-Ala-D-Ala, blocking peptidoglycan chain building',
+  adr:'Infusion reaction (flushing, "red man") and nephrotoxicity',
+  ind:'MRSA infections; oral form for C. difficile colitis',
+  cau:'Infuse slowly (at least 60 min) and monitor blood levels'},
+ {name:'Gentamicin', cls:'Aminoglycoside', group:'30s-a',
+  moa:'Binds 30S subunit, causing mRNA misreading (bactericidal)',
+  adr:'Nephrotoxicity and irreversible ototoxicity',
+  ind:'Severe Gram-negative sepsis; synergy in endocarditis',
+  cau:'Monitor levels and renal function; avoid with loop diuretics'},
+ {name:'Doxycycline', cls:'Tetracycline', group:'30s-t',
+  moa:'Binds 30S subunit, blocking aminoacyl-tRNA attachment',
+  adr:'Photosensitivity and oesophageal irritation',
+  ind:'Acne, atypical pneumonia and Lyme disease',
+  cau:'Avoid in pregnancy and under 8 years (tooth staining); not with antacids or iron'},
+ {name:'Azithromycin', cls:'Macrolide', group:'50s',
+  moa:'Binds 50S subunit, blocking ribosomal translocation',
+  adr:'GI upset and QT prolongation',
+  ind:'Atypical pneumonia and chlamydia',
+  cau:'Avoid combining with other QT-prolonging drugs'},
+ {name:'Clindamycin', cls:'Lincosamide', group:'50s',
+  moa:'Binds 50S subunit, inhibiting peptide chain elongation',
+  adr:'Clostridioides difficile colitis',
+  ind:'Skin and soft-tissue infections; anaerobic infections',
+  cau:'Stop and seek help if diarrhoea develops'},
+ {name:'Ciprofloxacin', cls:'Fluoroquinolone', group:'gyrase',
+  moa:'Inhibits DNA gyrase and topoisomerase IV',
+  adr:'Tendinitis and tendon rupture',
+  ind:'Complicated UTI and pyelonephritis (covers Pseudomonas)',
+  cau:'Higher tendon risk in elderly or on steroids; separate from antacids'},
+ {name:'Co-trimoxazole', cls:'Sulfamethoxazole + trimethoprim', group:'folate',
+  moa:'Blocks two sequential steps of bacterial folate synthesis',
+  adr:'Hyperkalaemia and severe skin reactions (SJS)',
+  ind:'Pneumocystis jirovecii pneumonia (PCP)',
+  cau:'Haemolysis risk in G6PD deficiency; increases warfarin effect'},
+ {name:'Metronidazole', cls:'Nitroimidazole', group:'dnadmg',
+  moa:'Forms toxic radicals that damage DNA in anaerobes',
+  adr:'Metallic taste and peripheral neuropathy',
+  ind:'Anaerobic infections, bacterial vaginosis and trichomoniasis',
+  cau:'No alcohol during and for 48 h after (disulfiram-like reaction)'},
+ {name:'Nitrofurantoin', cls:'Nitrofuran', group:'dnadmg',
+  moa:'Reactive intermediates damage bacterial DNA and ribosomes',
+  adr:'Nausea, brown urine and pulmonary reactions',
+  ind:'Uncomplicated lower UTI (cystitis)',
+  cau:'Avoid if eGFR below 45; avoid at term in pregnancy'},
+ {name:'Rifampicin', cls:'Rifamycin', group:'rna',
+  moa:'Inhibits bacterial DNA-dependent RNA polymerase',
+  adr:'Orange-red body fluids and hepatotoxicity',
+  ind:'Tuberculosis (with other agents)',
+  cau:'Strong enzyme inducer; makes oral contraceptives unreliable'}
+];
+
+const CATS = {
+ moa:{label:'Mechanism of action', fwd:d=>`How does ${d.name} work?`, rev:'Which antibiotic works this way?', n:1},
+ adr:{label:'Main ADR', fwd:d=>`What is the main adverse reaction of ${d.name}?`, rev:'Which antibiotic is known for this adverse reaction?', n:2},
+ ind:{label:'To what disease', fwd:d=>`${d.name} is a common choice for…`, rev:'Which antibiotic fits this indication?', n:3},
+ cau:{label:'Special caution', fwd:d=>`What is the special caution for ${d.name}?`, rev:'Which antibiotic carries this caution?', n:4}
+};
+const UNITS = [
+ {id:'moa', title:'Mechanism of action', blurb:'How each drug attacks bacteria', n:1},
+ {id:'adr', title:'Main ADR', blurb:'What to warn patients about', n:2},
+ {id:'ind', title:'To what disease', blurb:'Match drug to infection', n:3},
+ {id:'cau', title:'Special caution', blurb:'Allergies, interactions, populations', n:4},
+ {id:'mix', title:'Mixed review', blurb:'All four topics together', n:5}
+];
+const PER_UNIT = 3, Q_PER_LESSON = 10, MAX_HEARTS = 5;
+const $ = id => document.getElementById(id);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]} return a; };
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- saved progress ---------- */
+let save = {xp:0, streak:0, lastDay:null, done:{}};
+try { const s = JSON.parse(localStorage.getItem('abxquest') || 'null'); if (s) save = Object.assign(save, s); } catch(e){}
+const persist = () => { try { localStorage.setItem('abxquest', JSON.stringify(save)); } catch(e){} };
+const dayKey = d => d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+
+/* ---------- home ---------- */
+function renderHome(){
+  $('s-streak').textContent = save.streak;
+  $('s-xp').textContent = save.xp;
+  const offs = ['0px','-46px','46px'];
+  $('view-path').innerHTML = UNITS.map((u,ui) => {
+    const done = Math.min(save.done[u.id]||0, PER_UNIT);
+    const nodes = Array.from({length:PER_UNIT}, (_,i) =>
+      `<button class="node ${i<done?'done':''}" style="--off:${offs[(i+ui)%3]}" data-unit="${u.id}" aria-label="${u.title}, lesson ${i+1}${i<done?' (completed)':''}">
+        <span class="capsule"></span><span class="node-label">Lesson ${i+1}</span></button>`).join('');
+    return `<div class="unit" style="--uc:var(--u${u.n})">
+      <div class="unit-head"><div><div class="eyebrow">Unit ${ui+1}</div><h2>${u.title}</h2><p>${u.blurb}</p></div>
+      <div class="unit-prog">${done}/${PER_UNIT}</div></div>
+      <div class="nodes">${nodes}</div></div>`;
+  }).join('');
+  renderCards();
+}
+function renderCards(){
+  const q = $('search').value.trim().toLowerCase();
+  const list = DRUGS.filter(d => !q || Object.values(d).join(' ').toLowerCase().includes(q));
+  $('cards').innerHTML = list.length ? list.map(d => `<article class="card"><h3>${d.name}</h3><div class="cls">${d.cls}</div><dl>
+    <div><dt class="dt1">Mechanism</dt><dd>${esc(d.moa)}</dd></div>
+    <div><dt class="dt2">Main ADR</dt><dd>${esc(d.adr)}</dd></div>
+    <div><dt class="dt3">Used for</dt><dd>${esc(d.ind)}</dd></div>
+    <div><dt class="dt4">Caution</dt><dd>${esc(d.cau)}</dd></div></dl></article>`).join('')
+    : `<p style="color:var(--muted)">No drug matches "${esc(q)}". Try a class name such as macrolide.</p>`;
+}
+function setTab(cards){
+  $('tab-path').setAttribute('aria-selected', !cards); $('tab-cards').setAttribute('aria-selected', cards);
+  $('view-path').hidden = cards; $('view-cards').hidden = !cards;
+}
+$('tab-path').onclick = () => setTab(false);
+$('tab-cards').onclick = () => setTab(true);
+$('search').oninput = renderCards;
+$('view-path').addEventListener('click', e => { const b = e.target.closest('.node'); if (b) startLesson(b.dataset.unit); });
+
+/* ---------- question builders ---------- */
+function distractors(d, cat, k){
+  return shuffle(DRUGS.filter(x => x !== d && x[cat] !== d[cat] && !(cat==='moa' && x.group===d.group))).slice(0,k);
+}
+function makeFwd(d, cat){
+  const opts = shuffle([d, ...distractors(d,cat,3)]);
+  return {type:'mcq', cat, drug:d, prompt:CATS[cat].fwd(d), options:opts.map(x=>x[cat]), answer:opts.indexOf(d)};
+}
+function makeRev(d, cat){
+  const opts = shuffle([d, ...distractors(d,cat,3)]);
+  return {type:'mcq', cat, drug:d, prompt:CATS[cat].rev, quote:d[cat], options:opts.map(x=>x.name), answer:opts.indexOf(d)};
+}
+function makeMatch(cat){
+  const pick = [];
+  for (const d of shuffle(DRUGS.slice())) {
+    if (pick.length===4) break;
+    if (cat==='moa' && pick.some(p=>p.group===d.group)) continue;
+    pick.push(d);
+  }
+  return {type:'match', cat, drugs:pick, facts:shuffle(pick.slice())};
+}
+function buildLesson(unitId){
+  const pool = shuffle(DRUGS.slice());
+  const cats = unitId==='mix' ? Object.keys(CATS) : [unitId];
+  const qs = [];
+  for (let i=0;i<Q_PER_LESSON;i++){
+    const cat = cats[unitId==='mix' ? (Math.random()*4|0) : 0];
+    if (i===4 || i===9) qs.push(makeMatch(cat));
+    else qs.push(i%2 ? makeRev(pool[i%pool.length],cat) : makeFwd(pool[i%pool.length],cat));
+  }
+  return qs;
+}
+
+/* ---------- lesson engine ---------- */
+let L = null;
+function startLesson(unitId){
+  L = {unit:unitId, queue:buildLesson(unitId), total:Q_PER_LESSON, solved:0, hearts:MAX_HEARTS, firstTry:0, missed:new Set(), sel:null, checked:false};
+  $('home').hidden = true; $('result').hidden = true; $('lesson').hidden = false;
+  window.scrollTo(0,0); showQ();
+}
+function cur(){ return L.queue[0]; }
+function updateBar(){ $('bar').style.width = (L.solved/L.total*100)+'%'; $('hearts').textContent = L.hearts; }
+function resetFoot(){
+  $('foot').className = 'foot'; $('fb').innerHTML = '';
+  $('check').textContent = 'Check'; $('check').disabled = true;
+}
+function showQ(){
+  updateBar(); resetFoot(); L.sel = null; L.checked = false;
+  const q = cur(), c = CATS[q.cat];
+  let html = `<span class="chip" style="--uc:var(--u${c.n})">${c.label}</span>`;
+  if (q.type==='mcq'){
+    html += `<h2 class="prompt">${esc(q.prompt)}</h2>`;
+    if (q.quote) html += `<div class="quote" style="--uc:var(--u${c.n})">${esc(q.quote)}</div>`;
+    html += `<div class="opts">` + q.options.map((o,i) =>
+      `<button class="opt" data-i="${i}" aria-pressed="false"><span class="k">${i+1}</span><span>${esc(o)}</span></button>`).join('') + `</div>`;
+  } else {
+    html += `<h2 class="prompt">Tap the matching pairs</h2>
+      <div class="match"><div class="col">${q.drugs.map((d,i)=>`<button class="m name" data-side="l" data-i="${i}" aria-pressed="false">${d.name}</button>`).join('')}</div>
+      <div class="col">${q.facts.map((d,i)=>`<button class="m" data-side="r" data-i="${i}" aria-pressed="false">${esc(d[q.cat])}</button>`).join('')}</div></div>`;
+    L.mSel = {l:null, r:null}; L.paired = 0; L.matchMiss = false;
+    $('check').hidden = true;
+  }
+  if (q.type==='mcq') $('check').hidden = false;
+  $('qbody').innerHTML = html;
+}
+$('qbody').addEventListener('click', e => {
+  const q = cur(); if (!q || L.checked) return;
+  if (q.type==='mcq'){
+    const b = e.target.closest('.opt'); if (!b) return;
+    pick(+b.dataset.i);
+  } else {
+    const b = e.target.closest('.m'); if (!b || b.classList.contains('paired')) return;
+    const side = b.dataset.side;
+    document.querySelectorAll(`.m[data-side="${side}"]`).forEach(x => x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true'); L.mSel[side] = +b.dataset.i;
+    if (L.mSel.l!==null && L.mSel.r!==null) tryPair();
+  }
+});
+function pick(i){
+  L.sel = i;
+  document.querySelectorAll('.opt').forEach(o => o.setAttribute('aria-pressed', +o.dataset.i===i));
+  $('check').disabled = false;
+}
+function tryPair(){
+  const q = cur();
+  const lb = document.querySelector(`.m[data-side="l"][data-i="${L.mSel.l}"]`);
+  const rb = document.querySelector(`.m[data-side="r"][data-i="${L.mSel.r}"]`);
+  if (q.drugs[L.mSel.l] === q.facts[L.mSel.r]){
+    [lb,rb].forEach(x=>{x.classList.add('paired');x.setAttribute('aria-pressed','false');x.disabled=true;});
+    L.paired++;
+    if (L.paired===4) finishQ(true, true);
+  } else {
+    L.matchMiss = true;
+    [lb,rb].forEach(x=>{x.classList.remove('miss');void x.offsetWidth;x.classList.add('miss');x.setAttribute('aria-pressed','false');});
+    setTimeout(()=>[lb,rb].forEach(x=>x.classList.remove('miss')),400);
+  }
+  L.mSel = {l:null, r:null};
+}
+function check(){
+  const q = cur();
+  if (L.checked){ next(); return; }
+  if (L.sel===null) return;
+  const ok = L.sel===q.answer;
+  document.querySelectorAll('.opt').forEach(o => {
+    o.disabled = true; const i=+o.dataset.i;
+    if (i===q.answer) o.classList.add('right'); else if (i===L.sel) o.classList.add('wrong');
+  });
+  finishQ(ok, false);
+}
+function finishQ(ok, isMatch){
+  const q = cur(); L.checked = true;
+  const key = q;
+  if (ok){
+    L.solved++; if (!L.missed.has(key) && !(isMatch && L.matchMiss)) L.firstTry++;
+  } else {
+    L.hearts--; L.missed.add(key);
+  }
+  updateBar();
+  const foot = $('foot'); foot.className = 'foot ' + (ok?'good':'bad');
+  if (isMatch){
+    $('fb').innerHTML = `<h3>${L.matchMiss?'All paired':'Perfect match!'}</h3><p>${CATS[q.cat].label}: 4 drugs sorted.</p>`;
+  } else {
+    const correct = q.options[q.answer];
+    $('fb').innerHTML = `<h3>${ok?pickPraise():'Not quite'}</h3>` +
+      (ok?'':`<p><b>Answer:</b> ${esc(correct)}</p>`) +
+      `<small>${q.drug.name} · ${q.drug.cls}</small>`;
+  }
+  $('check').hidden = false; $('check').disabled = false;
+  $('check').textContent = ok ? 'Continue' : (L.hearts<=0 ? 'See result' : 'Got it');
+  $('check').focus({preventScroll:true});
+}
+const PRAISE = ['Correct!','Nicely done!','Spot on!','Textbook!','You know your bugs!'];
+const pickPraise = () => PRAISE[Math.random()*PRAISE.length|0];
+function next(){
+  const q = L.queue.shift();
+  if (L.missed.has(q) && L.hearts>0 && $('foot').classList.contains('bad')){
+    // re-ask a fresh version of the missed question later
+    L.queue.push(q.type==='mcq' ? (q.quote ? makeRev(q.drug,q.cat) : makeFwd(q.drug,q.cat)) : makeMatch(q.cat));
+    L.missed.add(L.queue[L.queue.length-1]);
+  }
+  if (L.hearts<=0) return showResult(false);
+  if (!L.queue.length) return showResult(true);
+  showQ(); window.scrollTo(0,0);
+}
+$('check').onclick = check;
+$('quit').onclick = () => { $('lesson').hidden = true; $('home').hidden = false; renderHome(); };
+document.addEventListener('keydown', e => {
+  if ($('lesson').hidden || !L) return;
+  const q = cur();
+  if (q && q.type==='mcq' && !L.checked && /^[1-4]$/.test(e.key)) pick(+e.key-1);
+  if (e.key==='Enter' && !$('check').disabled && !$('check').hidden && document.activeElement!==$('check')){ e.preventDefault(); check(); }
+});
+
+/* ---------- result ---------- */
+function showResult(passed){
+  $('lesson').hidden = true; $('result').hidden = false; window.scrollTo(0,0);
+  const acc = Math.round(L.firstTry / L.total * 100);
+  let xp = 0;
+  if (passed){
+    xp = L.solved*10 + (L.hearts===MAX_HEARTS ? 20 : 0);
+    save.xp += xp;
+    save.done[L.unit] = (save.done[L.unit]||0) + 1;
+    const today = new Date(), y = new Date(); y.setDate(y.getDate()-1);
+    if (save.lastDay !== dayKey(today)){
+      save.streak = save.lastDay===dayKey(y) ? save.streak+1 : 1;
+      save.lastDay = dayKey(today);
+    }
+    persist();
+  }
+  const unit = UNITS.find(u=>u.id===L.unit);
+  $('result').innerHTML = passed ? `<div class="result">
+      <div class="big-capsule" aria-hidden="true"></div>
+      <h2>Lesson complete!</h2>
+      <p style="color:var(--muted);margin:0">${unit.title}${L.hearts===MAX_HEARTS?' · flawless bonus +20 XP':''}</p>
+      <div class="tiles">
+        <div class="tile" style="--tc:var(--amber)"><b>XP earned</b><span>+${xp}</span></div>
+        <div class="tile" style="--tc:var(--good)"><b>First-try</b><span>${acc}%</span></div>
+        <div class="tile" style="--tc:var(--u2)"><b>Streak</b><span>${save.streak} day${save.streak===1?'':'s'}</span></div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+        <button class="btn ghost" id="r-again">Practise again</button>
+        <button class="btn" id="r-home">Continue</button></div></div>`
+    : `<div class="result">
+      <h2>Out of hearts</h2>
+      <p style="color:var(--muted);margin:0;max-width:40ch">You solved ${L.solved} of ${L.total}. Review the drug cards, then try again.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+        <button class="btn ghost" id="r-cards">Review cards</button>
+        <button class="btn" id="r-again">Try again</button></div></div>`;
+  const again = $('r-again'); if (again) again.onclick = () => startLesson(L.unit);
+  const home = $('r-home'); if (home) home.onclick = goHome;
+  const cards = $('r-cards'); if (cards) cards.onclick = () => { goHome(); setTab(true); };
+}
+function goHome(){ $('result').hidden = true; $('home').hidden = false; renderHome(); }
+
+renderHome();
+</script>
+
+</body>
+</html>
